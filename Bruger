@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stadion App - Fan</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+    header { background: #004aad; color: white; padding: 15px; text-align: center; }
+    .container { padding: 20px; }
+    .card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    button { background: #004aad; color: white; border: none; border-radius: 5px; padding: 10px 15px; margin-top: 10px; cursor: pointer; }
+    button:hover { background: #00347a; }
+    .stadium-btn { width: 100%; margin: 5px 0; font-size: 16px; }
+    ul { padding-left: 20px; }
+    .status { padding: 10px; border-radius: 5px; margin-top: 10px; }
+    .waiting { background: #fff3cd; color: #856404; }
+    .ready { background: #d4edda; color: #155724; }
+  </style>
+</head>
+<body>
+  <header>🏟️ Stadion App - Fan</header>
+  <div class="container">
+    <div class="card">
+      <h3>Vælg Stadion</h3>
+      <button class="stadium-btn" onclick="selectStadium('Brøndby Stadion')">Brøndby Stadion</button>
+      <button class="stadium-btn" onclick="selectStadium('Parken')">Parken</button>
+      <button class="stadium-btn" onclick="selectStadium('FC Midtjylland Stadion')">FC Midtjylland</button>
+      <button class="stadium-btn" onclick="selectStadium('FC Nordsjælland Stadion')">FC Nordsjælland</button>
+    </div>
+
+    <div id="menu" class="card" style="display:none;">
+      <h3>Menu</h3>
+      <button onclick="addToCart('🍺 Øl', 50)">🍺 Øl - 50 kr</button><br>
+      <button onclick="addToCart('🥤 Cola', 30)">🥤 Cola - 30 kr</button><br>
+      <button onclick="addToCart('🥤 Faxe Kondi', 25)">🥤 Faxe Kondi - 25 kr</button><br>
+      <button onclick="addToCart('🍿 Popcorn', 25)">🍿 Popcorn - 25 kr</button>
+    </div>
+
+    <div id="cart" class="card">
+      <h3>🛒 Kurv</h3>
+      <ul id="cartItems"></ul>
+      <p id="total"></p>
+      <button onclick="checkout()">Betal & Bestil</button>
+    </div>
+
+    <div id="payment" class="card" style="display:none;">
+      <h3>Vælg betalingsmetode</h3>
+      <button onclick="placeOrder('MobilePay')">MobilePay</button>
+      <button onclick="placeOrder('Apple Pay')">Apple Pay</button>
+      <button onclick="placeOrder('Kreditkort')">Kreditkort</button>
+    </div>
+
+    <div id="orderStatus"></div>
+  </div>
+
+<script>
+  let cart = [];
+  let stadium = "";
+
+  function selectStadium(name) {
+    stadium = name;
+    document.getElementById('menu').style.display = "block";
+    alert("Du har valgt: " + name);
+  }
+
+  function addToCart(product, price) {
+    cart.push({name: product, price: price});
+    renderCart();
+  }
+
+  function renderCart() {
+    let list = document.getElementById('cartItems');
+    list.innerHTML = "";
+    let total = 0;
+    cart.forEach((item) => {
+      let li = document.createElement('li');
+      li.textContent = item.name + " - " + item.price + " kr";
+      list.appendChild(li);
+      total += item.price;
+    });
+    document.getElementById("total").innerText = "Total: " + total + " kr";
+  }
+
+  function checkout() {
+    if (cart.length === 0) {
+      alert("Din kurv er tom!");
+      return;
+    }
+    document.getElementById("payment").style.display = "block";
+  }
+
+  function placeOrder(paymentMethod) {
+    let order = { stadium: stadium, items: cart, status: "Venter", id: Date.now(), payment: paymentMethod };
+    localStorage.setItem("order_" + order.id, JSON.stringify(order));
+    document.getElementById("orderStatus").innerHTML = '<div class="card status waiting">⏳ Ordre afgivet! Betaling: ' + paymentMethod + '</div>';
+    cart = [];
+    renderCart();
+    document.getElementById("payment").style.display = "none";
+  }
+
+  window.addEventListener("storage", (event) => {
+    if (event.key.startsWith("order_")) {
+      let order = JSON.parse(event.newValue);
+      if (order && order.status === "Klar") {
+        document.getElementById("orderStatus").innerHTML = '<div class="card status ready">✅ Din ordre er klar til afhentning!</div>';
+      }
+    }
+  });
+</script>
+</body>
+</html>
